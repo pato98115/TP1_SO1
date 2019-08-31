@@ -147,6 +147,7 @@ void print_time (char* label, long time)
 void datos_CPU(void){
 	FILE* archivo;
 	archivo = fopen("/proc/cpuinfo","r");
+	fprintf(stdout,"Modelo de CPU");
 	buscar("model name	",archivo); //Impresion de modelo y tipo de CPU
 	fclose(archivo);
 	return;
@@ -167,14 +168,21 @@ void kernel(){
 	fclose(archivo);
 	return;
 }
+
+/*
+busca en el @param:archivo e imprime la linea donde aparece 
+la cadena @param dato sin imprimir dicha cadena
+*/
 void buscar(char* dato, FILE* archivo){
 	char buffer[100];
+	char* linea;
 	int aux;
 	while(!feof(archivo)){
 		fgets(buffer,100,archivo);
 		aux=strncmp(dato,buffer,strlen(dato));
 		if(aux==0){
-			fprintf(stdout,"%s",buffer);
+			linea= &buffer[strlen(dato)];
+			fprintf(stdout,"%s",linea);
 			return;
 		}
 	}
