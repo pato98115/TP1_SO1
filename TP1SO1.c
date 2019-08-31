@@ -7,6 +7,7 @@
 void print_time (char* label, long time);
 void kernel(void);
 void buscar(char* dato,FILE* archivo);
+char* search(char* principio,FILE* archivo);
 void datos_CPU(void);
 void tiempoInicio(void);
 void cantArchivos_Soportados(void);
@@ -71,7 +72,7 @@ void cambios_Contexto(void){
 	FILE* archivo;
 	archivo = fopen("/proc/stat","r");
 	printf("Tiempo de cambio de contexto: ");
-	buscar("ctxt",archivo);
+	fprintf(stdout,"%s",search("ctxt",archivo));
 	fclose(archivo);
 	return;
 }
@@ -79,7 +80,7 @@ void procesos(void){ //Creo que esto lo que pide
 	FILE* archivo;
 	archivo = fopen("/proc/stat","r");
 	printf("Cantidad de procesos: ");
-	buscar("processes",archivo);
+	fprintf(stdout,"%s",search("processes",archivo));
 	fclose(archivo);
 	return;
 }
@@ -148,7 +149,7 @@ void datos_CPU(void){
 	FILE* archivo;
 	archivo = fopen("/proc/cpuinfo","r");
 	fprintf(stdout,"Modelo de CPU");
-	buscar("model name	",archivo); //Impresion de modelo y tipo de CPU
+	buscar("model name	",archivo);
 	fclose(archivo);
 	return;
 }
@@ -172,6 +173,7 @@ void kernel(){
 /*
 busca en el @param:archivo e imprime la linea donde aparece 
 la cadena @param dato sin imprimir dicha cadena
+se usa solo para imprimir el modelo de CPU
 */
 void buscar(char* dato, FILE* archivo){
 	char buffer[100];
@@ -188,4 +190,20 @@ void buscar(char* dato, FILE* archivo){
 	}
 	return;
 }
+
+char* search(char* principio,FILE* archivo){
+	char buffer[100];
+	char* linea;
+	int aux;
+	while(!feof(archivo)){
+		fgets(buffer,100,archivo);
+		aux=strncmp(principio,buffer,strlen(principio));
+		if(aux==0){
+			linea= &buffer[strlen(principio)];
+			return linea;
+		}
+	}
+	return NULL; //no lo encontro, es considerado un error
+}
+
 /*--------------------------------------------*/
