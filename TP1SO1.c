@@ -12,6 +12,8 @@ void tiempoInicio(void);
 void cantArchivos_Soportados(void);
 void cabecera(void);
 void tiempo_CPU(void);
+void cambios_Contexto(void);
+void procesos(void);
 
 int main (int argc, char* argv[])
 {
@@ -34,7 +36,8 @@ do {
 		{
 			case 's':
 				tiempo_CPU();
-
+				cambios_Contexto();
+				procesos();
 				break;
 			case 'l':	/* -o or --output */
 			/* This option takes an argument, the name of the output file.*/
@@ -47,20 +50,42 @@ do {
 	} while (next_option != -1);
 	return 0;
 }
+/*--------------------------------------------*/
+				/*STEP B*/
 void tiempo_CPU(void){
 	FILE* tiempo;
 	char buffer[1024];
 	char* match;	
 	float usuario,sistema,proceso_idle,nice;
 	tiempo = fopen("/proc/stat","r");
-	while(fgets(buffer,10240,tiempo)){
+	while(fgets(buffer,1024,tiempo)){
 		match=strstr(buffer,"cpu");
 		sscanf (match, "cpu %f %f %f %f\n", &usuario,&nice,&sistema,&proceso_idle);
 		fprintf(stdout,"Tiempo usuario: %.0f, Tiempo sistema: %.0f, Tiempo proceso idle: %.0f\n",usuario,sistema,proceso_idle);
+		fclose(tiempo);
 		return;
 	}
 	return;
 }
+void cambios_Contexto(void){
+	FILE* archivo;
+	archivo = fopen("/proc/stat","r");
+	printf("Tiempo de cambio de contexto: ");
+	buscar("ctxt",archivo);
+	fclose(archivo);
+	return;
+}
+void procesos(void){ //Creo que esto lo que pide
+	FILE* archivo;
+	archivo = fopen("/proc/stat","r");
+	printf("Cantidad de procesos: ");
+	buscar("processes",archivo);
+	fclose(archivo);
+	return;
+}
+/*-----------------------------------------------*/
+/*--------------------------------------------*/
+				/*STEP A*/
 void cabecera(void){
 	FILE *archivo;
 	char buffer[100];
@@ -75,7 +100,7 @@ void cabecera(void){
 	fprintf(stdout,"El nombre de la maquina es: ");
 	while(!feof(archivo)){ //Imprime hasta que se termine archivo
 		fgets(buffer,100,archivo);
-		fprintf(stdout,"%s\n",buffer);
+		fprintf(stdout,"%s",buffer);
 		break;
 	}
 	fclose(archivo);
@@ -136,7 +161,7 @@ void kernel(){
 	printf("La version del Kernel es: ");
 	while(!feof(archivo)){
 		fgets(buffer,100,archivo);
-		fprintf(stdout, "%s\n",buffer);
+		fprintf(stdout, "%s",buffer);
 		break;
 	}
 	fclose(archivo);
@@ -149,9 +174,10 @@ void buscar(char* dato, FILE* archivo){
 		fgets(buffer,100,archivo);
 		aux=strncmp(dato,buffer,strlen(dato));
 		if(aux==0){
-			fprintf(stdout,"%s\n",buffer);
+			fprintf(stdout,"%s",buffer);
 			return;
 		}
 	}
 	return;
 }
+/*--------------------------------------------*/
