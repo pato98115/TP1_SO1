@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<time.h>
 #include<getopt.h>
+#include<unistd.h>
 
 void print_time (char* label, long time);
 void kernel(void);
@@ -15,19 +16,28 @@ void cabecera(void);
 void tiempo_CPU(void);
 void cambios_Contexto(void);
 void procesos(void);
+void memoria(void);
+void hdd_requests();
+void matcher(char* file_name,char* matched, char* match_str);
+void impresion_temporal(char* argv[]);
+void opciones(void);
 
 int main (int argc, char* argv[])
 {
+	if(argv[4]!=NULL){
+		opciones();
+		return 0;
+	}
 	cabecera(); //Imprime nombre y fecha actual
 	datos_CPU();//Imprime datos del CPU
 	kernel(); //Imprime la version del kernel
 	tiempoInicio();//Imprime tiempo de inicio del SO
 	cantArchivos_Soportados(); //34 directorios soportdos por el kernel
 	int next_option;
-	const char* const short_options = "sl";
+	const char* const short_options = "sl:";
 	const struct option long_options[] = {
 		{ "s",	0, NULL, 's' },
-		{ "l",	0, NULL, 'l' },
+		{ "l",	2, NULL, 'l' },
 		{ NULL,	0, NULL, 0}
 	};
 do {
@@ -40,8 +50,11 @@ do {
 				cambios_Contexto();
 				procesos();
 				break;
-			case 'l':	/* -o or --output */
-			/* This option takes an argument, the name of the output file.*/
+			case 'l':
+				tiempo_CPU();
+				cambios_Contexto();
+				procesos();
+				impresion_temporal(argv);
 				break;
 			case -1:
 			break;
@@ -51,6 +64,81 @@ do {
 	} while (next_option != -1);
 	return 0;
 }
+/*--------------------------------------------*/
+				/*STEP c*/
+void impresion_temporal(char* argv[]){
+	//printf("%s %s \n",argv[2], argv[3]);
+	//printf("%d %d\n",*argv[2],*argv[3]);
+	int intervalo =atoi(argv[2]); 
+	//printf("%d\n",intervalo);
+	int cant_muestras =atoi(argv[3]);
+	//printf("%d\n",cant_muestras);
+	cant_muestras = cant_muestras / intervalo;
+	//printf("%d\n",cant_muestras);
+	while(cant_muestras>=1){
+		hdd_requests();
+		memoria();
+		cant_muestras--;
+		sleep(intervalo);
+	}
+	return;
+}
+void opciones(void){
+	printf("Ingreso parametros demas, recuerde que los parametros validos son:\n");
+	printf("-s             --s\n");
+	printf("-l             --l\n");
+	return;
+}
+void memoria(void){
+	FILE* memoria;
+	FILE* carga;
+	FILE* disco;
+	char buffer[1000];
+	char* match;
+	memoria = fopen("/proc/meminfo","r");
+	carga = fopen("/proc/loadavg","r");
+	float cpu1,cpu2,cpu3;
+	float memTotal,memDisponible;
+	memTotal = strtof(search("MemTotal: ",memoria),NULL);
+	memDisponible = strtof(search("MemAvailable: ",memoria),NULL);
+	while(!feof(carga)){ //Imprime hasta que se termine archivo
+		fscanf(carga,"%f %f %f",&cpu1,&cpu2,&cpu3);
+		//fprintf(stdout,"%s",buffer);
+		break;
+	}
+	fprintf(stdout,"Memoria Total: %0.f\n",memTotal);
+	fprintf(stdout,"Memoria Disponible: %0.f\n",memDisponible);
+	fprintf(stdout,"Promedio de carga en el último minuto: %.2f\n",(cpu1+cpu2+cpu3));	
+	return;
+}
+void hdd_requests(){
+    char matched[1000];
+    unsigned int lectures = 0, writed = 0, request = 0;
+    matcher("/proc/diskstats",matched,"sda");
+    sscanf(matched,"sda %u",&lectures);
+    sscanf(matched,"sda %*u %*u %*u %*u %u",&writed);
+    request = lectures + writed;
+    printf("Cantidad de pedidos al disco: %u\n",request);
+    return;
+}
+void matcher(char* file_name,char* matched, char* match_str){
+    FILE* fp;
+    char* match = NULL;
+    char buffer[512];
+    fp = fopen(file_name,"r");
+
+    while (feof(fp)==0) {
+        fgets(buffer,512,fp);
+        match = strstr(buffer,match_str);
+        if (match!=NULL) {
+            break;
+        }
+    }
+    fclose(fp);
+    strcpy(matched,match);
+    return;
+}
+/*--------------------------------------------*/
 /*--------------------------------------------*/
 				/*STEP B*/
 void tiempo_CPU(void){
