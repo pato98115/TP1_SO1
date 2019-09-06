@@ -20,13 +20,17 @@ void memoria(void);
 void hdd_requests();
 void matcher(char* file_name,char* matched, char* match_str);
 void impresion_temporal(char* argv[]);
+void imprimir_Linea(char* file_name);
 void opciones(void);
+void limites(char* pid);
+void file_descriptors(char* pid);
+void stack_trace(char* pid);
 
 int main (int argc, char* argv[])
 {
 	if(argv[4]!=NULL){
-		opciones();
-		return 0;
+		//opciones();
+		//return 0;
 	}
 	cabecera(); //Imprime nombre y fecha actual
 	datos_CPU();//Imprime datos del CPU
@@ -34,10 +38,13 @@ int main (int argc, char* argv[])
 	tiempoInicio();//Imprime tiempo de inicio del SO
 	cantArchivos_Soportados(); //34 directorios soportdos por el kernel
 	int next_option;
-	const char* const short_options = "sl:";
+	const char* const short_options = "sl:p:f:t:";
 	const struct option long_options[] = {
 		{ "s",	0, NULL, 's' },
 		{ "l",	2, NULL, 'l' },
+		{ "f",	1, NULL, 'f' },
+		{ "p",	1, NULL, 'p' },
+		{ "t",	1, NULL, 't' },
 		{ NULL,	0, NULL, 0}
 	};
 do {
@@ -46,15 +53,41 @@ do {
 		switch (next_option)
 		{
 			case 's':
+				if(argv[2]!=NULL){
+					opciones();
+					return 0;
+				}
 				tiempo_CPU();
 				cambios_Contexto();
 				procesos();
 				break;
 			case 'l':
+				if(argv[4]!=NULL && !strncmp(argv[2],"-s",2)){ //Evaluar que no se escriba s
+					opciones();
+					return 0;
+				}
 				tiempo_CPU();
 				cambios_Contexto();
 				procesos();
 				impresion_temporal(argv);
+				break;
+			case 'f':
+				tiempo_CPU();
+				cambios_Contexto();
+				procesos();
+				limites(argv[2]);
+				break;
+			case 'p':
+				tiempo_CPU();
+				cambios_Contexto();
+				procesos();
+				file_descriptors(argv[2]);
+				break;
+			case 't':
+				tiempo_CPU();
+				cambios_Contexto();
+				procesos();
+				stack_trace(argv[2]);
 				break;
 			case -1:
 			break;
@@ -65,16 +98,73 @@ do {
 	return 0;
 }
 /*--------------------------------------------*/
-				/*STEP c*/
+				/*STEP D*/
+void limites(char* pid){
+	//char* path = "/proc/12/limits";
+	char path[30];
+	//sprintf(path, "/proc/%s/limits", "3040");
+	strcpy(path, ""); //limpiar
+	strcat(path, "/proc/");
+	strcat(path, pid);
+	strcat(path, "/limits");
+	char matched[1000];
+	printf("Limites de archivos abiertos del proceso: \n");
+	matcher(path,matched,"Max open files");
+	float softL, hardL;
+	sscanf(matched,"Max open files %f %f", &softL, &hardL);
+	printf("Soft limit: %0.f files   Hard limit: %0.f files\n", softL, hardL);
+	printf("fdf");
+	return;
+}
+
+void file_descriptors(char* pid){
+	char comando[40];
+	FILE* fd;
+	int fdd;
+	char buffer[1000];
+	char tmp_file[] = "/tmp/temp_file.XXXXXX";
+	fdd = mkstemp(tmp_file);
+	fd = fopen(tmp_file, "w+");
+	strcpy(comando, ""); //limpiar
+	strcat(comando, "lsof -a -p ");
+	strcat(comando, pid);
+	strcat(comando, " > ");
+	strcat(comando, tmp_file);
+	system(comando);
+	unlink(tmp_file);
+
+	int i=0;
+	char command[15],user[15],permisos[10],type[15],name[100],p_id[15],device[10],node[15],size[15];
+	printf("Permisos 		Tipo  		Nombre\n");
+	while(!feof(fd)){ //Imprime hasta que se termine archivo
+		fgets(buffer,1000,fd);
+		if(i>0){
+			sscanf(buffer,"%s %s %s %s %s %s %s %s %s",command,p_id,user,permisos,type,device,size,node,name);
+			printf("%s 			 %s 		 %s\n",permisos,type,name);
+		}
+		i++;
+	}
+	fclose(fd);
+	return;
+}
+
+void stack_trace(char* pid){
+	char comando[40];
+	strcpy(comando, ""); //limpiar
+	strcat(comando, "sudo cat /proc/");
+	strcat(comando, pid);
+	strcat(comando, "/stack");
+	system(comando);
+	return;
+}
+
+
+/*--------------------------------------------*/
+				/*STEP C*/
 void impresion_temporal(char* argv[]){
-	//printf("%s %s \n",argv[2], argv[3]);
-	//printf("%d %d\n",*argv[2],*argv[3]);
 	int intervalo =atoi(argv[2]); 
-	//printf("%d\n",intervalo);
 	int cant_muestras =atoi(argv[3]);
-	//printf("%d\n",cant_muestras);
 	cant_muestras = cant_muestras / intervalo;
-	//printf("%d\n",cant_muestras);
 	while(cant_muestras>=1){
 		hdd_requests();
 		memoria();
@@ -90,20 +180,17 @@ void opciones(void){
 	return;
 }
 void memoria(void){
-	FILE* memoria;
-	FILE* carga;
-	FILE* disco;
 	char buffer[1000];
-	char* match;
-	memoria = fopen("/proc/meminfo","r");
-	carga = fopen("/proc/loadavg","r");
 	float cpu1,cpu2,cpu3;
 	float memTotal,memDisponible;
-	memTotal = strtof(search("MemTotal: ",memoria),NULL);
-	memDisponible = strtof(search("MemAvailable: ",memoria),NULL);
+	matcher("/proc/meminfo",buffer,"MemTotal");
+	sscanf(buffer,"MemTotal: %f",&memTotal);
+	matcher("/proc/meminfo",buffer,"MemAvailable:");
+	sscanf(buffer,"MemAvailable: %f",&memDisponible);
+	FILE* carga; 
+	carga = fopen("/proc/loadavg","r");
 	while(!feof(carga)){ //Imprime hasta que se termine archivo
 		fscanf(carga,"%f %f %f",&cpu1,&cpu2,&cpu3);
-		//fprintf(stdout,"%s",buffer);
 		break;
 	}
 	fprintf(stdout,"Memoria Total: %0.f\n",memTotal);
@@ -121,78 +208,41 @@ void hdd_requests(){
     printf("Cantidad de pedidos al disco: %u\n",request);
     return;
 }
-void matcher(char* file_name,char* matched, char* match_str){
-    FILE* fp;
-    char* match = NULL;
-    char buffer[512];
-    fp = fopen(file_name,"r");
-
-    while (feof(fp)==0) {
-        fgets(buffer,512,fp);
-        match = strstr(buffer,match_str);
-        if (match!=NULL) {
-            break;
-        }
-    }
-    fclose(fp);
-    strcpy(matched,match);
-    return;
-}
-/*--------------------------------------------*/
 /*--------------------------------------------*/
 				/*STEP B*/
 void tiempo_CPU(void){
-	FILE* tiempo;
 	char buffer[1024];
-	char* match;	
 	float usuario,sistema,proceso_idle,nice;
-	tiempo = fopen("/proc/stat","r");
-	while(fgets(buffer,1024,tiempo)){
-		match=strstr(buffer,"cpu");
-		sscanf (match, "cpu %f %f %f %f\n", &usuario,&nice,&sistema,&proceso_idle);
-		fprintf(stdout,"Tiempo usuario: %.0f, Tiempo sistema: %.0f, Tiempo proceso idle: %.0f\n",usuario,sistema,proceso_idle);
-		fclose(tiempo);
-		return;
-	}
+	matcher("/proc/stat",buffer,"cpu");
+	sscanf(buffer,"cpu %f %f %f %f",&usuario,&nice,&sistema,&proceso_idle);
+	fprintf(stdout,"Tiempo usuario: %.0f, Tiempo sistema: %.0f, Tiempo proceso idle: %.0f\n",usuario,sistema,proceso_idle);
 	return;
 }
 void cambios_Contexto(void){
-	FILE* archivo;
-	archivo = fopen("/proc/stat","r");
-	printf("Tiempo de cambio de contexto: ");
-	fprintf(stdout,"%s",search("ctxt",archivo));
-	fclose(archivo);
+	char buffer[1000];
+	float contexto;
+	matcher("/proc/stat",buffer,"ctxt");
+	sscanf(buffer,"ctxt %f",&contexto);
+	printf("Tiempo de cambio de contexto: %.0f \n",contexto);
 	return;
 }
 void procesos(void){ //Creo que esto lo que pide
-	FILE* archivo;
-	archivo = fopen("/proc/stat","r");
-	printf("Cantidad de procesos: ");
-	fprintf(stdout,"%s",search("processes",archivo));
-	fclose(archivo);
+	char buffer[1000];
+	float procesos;
+	matcher("/proc/stat",buffer,"processes");
+	sscanf(buffer,"processes %f",&procesos);
+	printf("Cantidad de procesos: %.0f \n",procesos);
 	return;
 }
-/*-----------------------------------------------*/
 /*--------------------------------------------*/
 				/*STEP A*/
 void cabecera(void){
-	FILE *archivo;
-	char buffer[100];
 	time_t t;
   	struct tm *tm;
   	char fechayhora[100];
 
-	archivo = fopen("/proc/sys/kernel/hostname","r");
-	if(archivo==NULL){
-		fputs("File error\n",stderr);exit (1);
-	}
 	fprintf(stdout,"El nombre de la maquina es: ");
-	while(!feof(archivo)){ //Imprime hasta que se termine archivo
-		fgets(buffer,100,archivo);
-		fprintf(stdout,"%s",buffer);
-		break;
-	}
-	fclose(archivo);
+	imprimir_Linea("/proc/sys/kernel/hostname");
 	fprintf(stdout,"La fecha es: ");
   	t=time(NULL);
   	tm=localtime(&t);
@@ -233,6 +283,7 @@ void print_time (char* label, long time)
 	(time % day) / hour, (time % hour) / minute, time % minute);
 	return;
 }
+
 void datos_CPU(void){
 	FILE* archivo;
 	archivo = fopen("/proc/cpuinfo","r");
@@ -242,19 +293,8 @@ void datos_CPU(void){
 	return;
 }
 void kernel(){
-	FILE *archivo;
-	char buffer[100];
-	archivo=fopen("/proc/sys/kernel/version","r");
-	if(archivo==NULL){
-		fputs("File error",stderr);exit(1);
-	}
 	printf("La version del Kernel es: ");
-	while(!feof(archivo)){
-		fgets(buffer,100,archivo);
-		fprintf(stdout, "%s",buffer);
-		break;
-	}
-	fclose(archivo);
+	imprimir_Linea("/proc/sys/kernel/version");
 	return;
 }
 
@@ -278,7 +318,6 @@ void buscar(char* dato, FILE* archivo){
 	}
 	return;
 }
-
 char* search(char* principio,FILE* archivo){
 	char buffer[100];
 	char* linea;
@@ -293,5 +332,33 @@ char* search(char* principio,FILE* archivo){
 	}
 	return NULL; //no lo encontro, es considerado un error
 }
+void imprimir_Linea(char* file_name){
+	FILE* file;
+	char buffer[100];
+	file = fopen(file_name,"r");
+		while(!feof(file)){ //Imprime hasta que se termine archivo
+		fgets(buffer,100,file);
+		fprintf(stdout,"%s",buffer);
+		break;
+	}
+	fclose(file);
+	return;
+}
+void matcher(char* file_name,char* matched, char* match_str){
+    FILE* fp;
+    char* match = NULL;
+    char buffer[512];
+    fp = fopen(file_name,"r");
 
+    while (feof(fp)==0) {
+        fgets(buffer,512,fp);
+        match = strstr(buffer,match_str);
+        if (match!=NULL) {
+            break;
+        }
+    }
+    fclose(fp);
+    strcpy(matched,match);
+    return;
+}
 /*--------------------------------------------*/
