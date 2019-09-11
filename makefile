@@ -1,16 +1,16 @@
-TP1: main.o usocomun.o stepA.o stepB.o stepC.o stepD.o
-	gcc -o TP1 main.o stepA.o stepB.o stepC.o stepD.o usocomun.o
-main.o: main.c stepA.h stepB.h stepC.h stepD.h usocomun.h
-	gcc -c main.c
-stepA.o: stepA.c usocomun.h stepA.h
-	gcc -c stepA.c
-stepB.o: stepB.c usocomun.h stepB.h
-	gcc -c stepB.c
-stepC.o: stepC.c usocomun.h stepC.h
-	gcc -c stepC.c
-stepD.o: stepD.c usocomun.h stepD.h
-	gcc -c stepD.c
-usocomun.o: usocomun.c usocomun.h
-	gcc -c usocomun.c 
+TP1: build/main.o build/usocomun.o build/stepA.o build/stepB.o build/stepC.o build/stepD.o
+	gcc build/main.o build/usocomun.o build/stepA.o build/stepB.o build/stepC.o build/stepD.o -o TP1
+build/main.o: 
+	gcc -c -Iinc src/main.c -o build/main.o
+build/usocomun.o: 
+	gcc -c -Iinc src/usocomun.c -o build/usocomun.o
+build/stepA.o: 
+	gcc -c -Iinc src/stepA.c -o build/stepA.o
+build/stepB.o:
+	gcc -c -Iinc src/stepB.c -o build/stepB.o
+build/stepC.o: 
+	gcc -c -Iinc src/stepC.c -o build/stepC.o
+build/stepD.o: 
+	gcc -c -Iinc src/stepD.c -o build/stepD.o
 clean:
 	rm -f TP1 *.o
