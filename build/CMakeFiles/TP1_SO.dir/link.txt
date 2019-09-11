@@ -1,0 +1,1 @@
+/usr/bin/cc    CMakeFiles/TP1_SO.dir/src/main.c.o CMakeFiles/TP1_SO.dir/src/stepA.c.o CMakeFiles/TP1_SO.dir/src/stepB.c.o CMakeFiles/TP1_SO.dir/src/stepC.c.o CMakeFiles/TP1_SO.dir/src/stepD.c.o CMakeFiles/TP1_SO.dir/src/usocomun.c.o  -o TP1_SO 

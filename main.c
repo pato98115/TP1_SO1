@@ -6,35 +6,11 @@
 #include<unistd.h>
 #include "usocomun.h"
 #include "stepA.h"
+#include "stepB.h"
+#include "stepC.h"
+#include "stepD.h"
 
-//void buscar(char* dato,FILE* archivo);
-//char* search(char* principio,FILE* archivo);
-//void matcher(char* file_name,char* matched, char* match_str);
-//void imprimir_Linea(char* file_name);
-
-/*
-void print_time (char* label, long time);
-void kernel(void);
-void datos_CPU(void);
-void tiempoInicio(void);
-void cantArchivos_Soportados(void);
-void cabecera(void);
-*/
-
-void tiempo_CPU(void);
-void cambios_Contexto(void);
-void procesos(void);
-
-void impresion_temporal(char* argv[]);
-void opciones(void);
-void memoria(void);
-void hdd_requests(void);
-
-void limites(char* pid);
-void file_descriptors(char* pid);
-void stack_trace(char* pid);
-/*
-void print_time (char* label, long time);
+/*void print_time (char* label, long time);
 void kernel(void);
 void buscar(char* dato,FILE* archivo);
 char* search(char* principio,FILE* archivo);
@@ -54,8 +30,9 @@ void opciones(void);
 void limites(char* pid);
 void file_descriptors(char* pid);
 void stack_trace(char* pid);
-int comprobar_parametros(char* argv1,char* argv2);
 */
+int comprobar_parametros(char* argv1,char* argv2);
+
 int main (int argc, char* argv[])
 {
 	if(argv[4]!=NULL){
@@ -136,7 +113,7 @@ int comprobar_parametros(char* argv1,char* argv2){
 }
 /*--------------------------------------------*/
 				/*STEP D*/
-void limites(char* pid){
+/*void limites(char* pid){
 	//char* path = "/proc/12/limits";
 	char path[30];
 	//sprintf(path, "/proc/%s/limits", "3040");
@@ -193,10 +170,11 @@ void stack_trace(char* pid){
 	system(comando);
 	return;
 }
-
+*/
 
 /*--------------------------------------------*/
 				/*STEP C*/
+/*
 void impresion_temporal(char* argv[]){
 	int intervalo =atoi(argv[2]); 
 	int cant_muestras =atoi(argv[3]);
@@ -243,10 +221,10 @@ void hdd_requests(){
     request = lectures + writed;
     printf("Cantidad de pedidos al disco: %u\n",request);
     return;
-}
+}*/
 /*--------------------------------------------*/
 				/*STEP B*/
-void tiempo_CPU(void){
+/*void tiempo_CPU(void){
 	char buffer[1024];
 	float usuario,sistema,proceso_idle,nice;
 	matcher("/proc/stat",buffer,"cpu");
@@ -269,10 +247,10 @@ void procesos(void){ //Creo que esto lo que pide
 	sscanf(buffer,"processes %f",&procesos);
 	printf("Cantidad de procesos: %.0f \n",procesos);
 	return;
-}
+}*/
 /*--------------------------------------------*/
 				/*STEP A*/
-void cabecera(void){
+/*void cabecera(void){
 	time_t t;
   	struct tm *tm;
   	char fechayhora[100];
@@ -296,25 +274,22 @@ void cantArchivos_Soportados(void){
 	}
 	fprintf(stdout, "Cantidad de archivos soportados: %d\n",cant_archivos);
 	return;
-}
+}/*
 void tiempoInicio(void){ //34
 	FILE* fp;
 	double uptime, idle_time;
-	/* Read the system uptime and accumulated idle time from /proc/uptime.*/
 	fp = fopen ("/proc/uptime", "r");
 	fscanf (fp, "%lf %lf\n", &uptime, &idle_time);
-	fclose (fp);/* Summarize it. */
+	fclose (fp);
 	print_time ("Uptime", (long) uptime);
 	print_time ("Idle time", (long) idle_time);
 	return;
 }
 void print_time (char* label, long time)
 {
-	/* Conversion constants. */
 	const long minute = 60;
 	const long hour = minute * 60;
 	const long day = hour * 24;
-	/* Produce output. */
 	fprintf(stdout,"%s: %ld dias, %ld:%02ld:%02ld\n", label, time / day,
 	(time % day) / hour, (time % hour) / minute, time % minute);
 	return;
@@ -334,11 +309,6 @@ void kernel(){
 	return;
 }
 
-/*
-busca en el @param:archivo e imprime la linea donde aparece 
-la cadena @param dato sin imprimir dicha cadena
-se usa solo para imprimir el modelo de CPU
-*/
 void buscar(char* dato, FILE* archivo){
 	char buffer[100];
 	char* linea;
