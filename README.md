@@ -6,8 +6,6 @@ Trabajo practico numero 1 de la materia Sistemas Operativos 1
 ---
 ## **Para el usuario:**
 
-### **AGREGAR COMO SE DESCARGA Y EJECUTA**
-
 Este programa recibe argumentos, dependiendo de estos la informacion que devuelve cambia y esto define diferentes modos de ejecucion.
 
 ### Por defecto:
@@ -55,4 +53,10 @@ Este programa recibe argumentos, dependiendo de estos la informacion que devuelv
 ---
 ## **Para el desarrollador:**
 
-### *AGREGAR BREVE DESCRIPCION DE LAS FUNCIONES IMPORTANTES Y DE LAS DECISIONES TOMADAS, ESTO DE MODO QUE ALGUIEN QUE QUIERA SEGUIR EXPANDIENDO EL PROYECTO LO PUEDA HACER*
+### El proceso de desarrolo de este sofware fue el siguiente:
+>Se comenzo **investigando** el contenido de los directorios claves a la par que se profundizaba con las maneras de leer e imprimir archivos y de listar directorios o usar **file descriptors**.\
+>Luego el desarrollo fue **incremental** de la forma en que lo recomienda la consigna del TP, siguiendo los **steps** desde el A al D.\
+>Al principio trabajamos enteramente sobre un unico archivo *.c* hasta que se optuvo el comportamiento deseado del programa.\
+>Luego se crearon *archivos separados para cada Step* con grupos de funciones correspondientes a estos, ademas de un archivo con funciones de *uso comun* en varios steps.\
+>Por ultimo se produjo un archivo **makefile** para manejar la creacion del ejecutable y las dependecias entre archivos.
+
