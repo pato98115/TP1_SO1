@@ -19,7 +19,7 @@ int main(int argc, char const *argv[])
     do{
     presentar_opciones();
     pedir_argumentos(args);
-    strcpy(comando, "./TP1 ");
+    strcpy(comando, "/home/patricio/Documentos/SO1/TP1_SO1/TP1 ");
     strcat(comando, args);
     printf("%s", comando);// ***QUITAR
     int retorno = system(comando);
